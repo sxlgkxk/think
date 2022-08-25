@@ -47,26 +47,76 @@
 		questions = questions ? JSON.parse(questions) : [];
 
 		function Main() {
+
+			//-------------------------------- drag handlers --------------------------------
+
+			let selected = null;
+
+			let dragOver = (e) => {
+				// 向前拖拽 向后拖拽
+				// 拖动目标(drop)是不是在拖拽源(drag)的前面
+				if (isBefore(selected, e.target)) {
+					e.target.parentNode.insertBefore(selected, e.target);
+				} else { e.target.parentNode.insertBefore(selected, e.target.nextSibling); }
+			}
+
+			let dragEnd = () => {
+				selected = null;
+
+				// 根据dom, 更新questions
+				questions = [];
+				let domList=document.querySelector('ul#listItems')
+				for(let dom of domList.children){
+					let content = dom.getAttribute('question');
+					console.log(content);
+					questions.push({ content: content });
+				}
+
+				// 更新localStorage
+				localStorage.setItem('questions', JSON.stringify(questions));
+			}
+
+			let dragStart = (e) => {
+				selected = e.target;
+			}
+
+			let isBefore = (el1, el2) => {
+				var cur;
+				if (el2.parentNode === el1.parentNode) {
+					for (cur = el1.previousSibling; cur; cur = cur.previousSibling) {
+						if (cur === el2) return true;
+					}
+				} else return false;
+			}
+
+			//-------------------------------- input handler --------------------------------
+
 			let listItems = questions.map((q) =>
-				<li>{q.status} : {q.content}</li>
+				<li onDragStart={dragStart} onDragEnd={dragEnd} draggable="true" onDragOver={dragOver} question={q.content}>{q.content}</li>
 			);
 			let input = useRef(null);
-
-			//-------------------------------- common functions --------------------------------
 
 			let onKeyUp = (e) => {
 				if (e.keyCode === 13) {
 					let content = input.current.value;
-					input.current.value = '';
+
+					if(content=='del'){
+						// 指令: 删除列表中第一条
+						questions.shift();
+					}else{
+						// 插入
+						input.current.value = '';
+						questions.splice(0, 0, { content: content });
+						if (questions.length > 100) questions.pop();
+					}
+					
 
 					// 写入localStorage
-					questions.splice(0, 0, { content: content, status: 'doing' });
-					if (questions.length > 100) questions.pop();
 					localStorage.setItem('questions', JSON.stringify(questions));
 
 					// 渲染
 					listItems = questions.map((q) =>
-						<li>{q.status} : {q.content}</li>
+						<li onDragStart={dragStart} onDragEnd={dragEnd} draggable="true" onDragOver={dragOver} question={q.content}>{q.content}</li>
 					);
 					render(<Main />);
 				}
@@ -75,8 +125,8 @@
 			//-------------------------------- Main --------------------------------
 
 			return (<div>
-				<input ref={input} class="w-full h-14 dark:bg-black dark:text-gray-300 border-2 border-blue-400 my-4 px-4" onKeyUp={onKeyUp}></input>
-				<ul>{listItems}</ul>
+				<input ref={input} class="w-full h-14 dark:bg-black dark:text-gray-300 border-2 border-blue-400 px-4" onKeyUp={onKeyUp}></input>
+				<ul id="listItems">{listItems}</ul>
 			</div>)
 		};
 		render(<Main />);
