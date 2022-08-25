@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<!--
+	1. 代码功能
+
+	2. 代码结构
+
+	3. 数据结构
+		localStorage:
+			questions: {content:'', status:''}
+	
+	4. 补充说明
+
+-->
+
+<html class="dark">
+
+<head>
+	<title>think</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="./static/tailwindcss3.1.4.js"></script>
+	<script src="./static/react.production.min.js"></script>
+	<script src="./static/react-dom.production.min.js"></script>
+	<script src="./static/babel.min.js"></script>
+	<script>
+		tailwind.config = {
+			darkMode: 'class',
+		}
+	</script>
+	<style>
+		li {
+			margin: 4px;
+			background: rgba(96, 137, 180, 0.6);
+			font-size: 20px;
+		}
+	</style>
+</head>
+
+<body class="dark:bg-black dark:text-gray-300">
+	<script type="text/babel">
+		const { useState, useRef } = React
+		let render = (x) => ReactDOM.render(x, document.body)
+
+		//-------------------------------- Init --------------------------------
+
+		let questions = localStorage.getItem('questions');
+		questions = questions ? JSON.parse(questions) : [];
+
+		function Main() {
+			let listItems = questions.map((q) =>
+				<li>{q.status} : {q.content}</li>
+			);
+			let input = useRef(null);
+
+			//-------------------------------- common functions --------------------------------
+
+			let onKeyUp = (e) => {
+				if (e.keyCode === 13) {
+					let content = input.current.value;
+					input.current.value = '';
+
+					// 写入localStorage
+					questions.splice(0, 0, { content: content, status: 'doing' });
+					if (questions.length > 100) questions.pop();
+					localStorage.setItem('questions', JSON.stringify(questions));
+
+					// 渲染
+					listItems = questions.map((q) =>
+						<li>{q.status} : {q.content}</li>
+					);
+					render(<Main />);
+				}
+			}
+
+			//-------------------------------- Main --------------------------------
+
+			return (<div>
+				<input ref={input} class="w-full h-14 dark:bg-black dark:text-gray-300 border-2 border-blue-400 my-4 px-4" onKeyUp={onKeyUp}></input>
+				<ul>{listItems}</ul>
+			</div>)
+		};
+		render(<Main />);
+
+
+	</script>
+</body>
+
+</html>
