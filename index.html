@@ -17,7 +17,7 @@
 <head>
 	<title>think</title>
 	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 	<script src="./static/tailwindcss3.1.4.js"></script>
 	<script src="./static/react.production.min.js"></script>
 	<script src="./static/react-dom.production.min.js"></script>
@@ -65,8 +65,8 @@
 
 				// 根据dom, 更新questions
 				questions = [];
-				let domList=document.querySelector('ul#listItems')
-				for(let dom of domList.children){
+				let domList = document.querySelector('ul#listItems')
+				for (let dom of domList.children) {
 					let content = dom.getAttribute('question');
 					console.log(content);
 					questions.push({ content: content });
@@ -96,20 +96,25 @@
 			);
 			let input = useRef(null);
 
+			// // 在切出页面时, 取消对input的focus
+			// window.onblur = () => {
+			// 	input.current.blur();
+			// }
+
 			let onKeyUp = (e) => {
 				if (e.keyCode === 13) {
 					let content = input.current.value;
 
-					if(content=='del'){
+					if (content == 'del') {
 						// 指令: 删除列表中第一条
 						questions.shift();
-					}else{
+					} else {
 						// 插入
 						input.current.value = '';
 						questions.splice(0, 0, { content: content });
 						if (questions.length > 100) questions.pop();
 					}
-					
+
 
 					// 写入localStorage
 					localStorage.setItem('questions', JSON.stringify(questions));
